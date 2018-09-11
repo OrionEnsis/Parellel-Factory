@@ -118,7 +118,7 @@ public class Controller {
     }
 
     void createFactory()  {
-        int threads = 32;
+        int threads = 1;
         ExecutorService executor = Executors.newFixedThreadPool(threads);
         ArrayList<FactoryBuilder> factoryBuilders = new ArrayList<>();
         for(int i = 0; i < threads; i ++){
@@ -137,7 +137,6 @@ public class Controller {
         factoryBuilders.forEach(f -> factories.add(f.getBestFactory()));
         factories.forEach(f->f.evaluateLayout());
         factories.sort((f1,f2)-> -f1.compareTo(f2));
-
         makeImage(factories.get(0));
     }
 

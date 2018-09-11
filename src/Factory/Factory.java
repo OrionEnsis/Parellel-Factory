@@ -8,7 +8,7 @@ public class Factory implements Comparable<Factory>{
     private int score;
     private Machine[][] layout;
     private HashMap<Tiles,Integer> rules;
-    HashMap<Tiles,ArrayList<Machine>> currentMachines = new HashMap<>();
+    private HashMap<Tiles,ArrayList<Machine>> currentMachines = new HashMap<>();
 
     public Factory (int length, int width, HashMap<Tiles,Integer> rules) {
         this.rules = new HashMap<>(rules);
@@ -30,15 +30,19 @@ public class Factory implements Comparable<Factory>{
         Random r = new Random();
         for(HashMap.Entry<Tiles,Integer> entry: rules.entrySet()){
             for(int i = 0; i < entry.getValue(); i++){
-                int x = r.nextInt(layout.length);
-                int y = r.nextInt(layout[0].length);
+                int x = r.nextInt(currentMachines.get(Tiles.EMPTY).size());
+                Machine m = currentMachines.get(Tiles.EMPTY).get(x);
+                m.setName(entry.getKey());
+                currentMachines.get(entry.getKey()).add(m);
+                currentMachines.get(Tiles.EMPTY).remove(m);
+                /*int y = r.nextInt(layout[0].length);
                 if(layout[x][y].getName().equals(Tiles.EMPTY)){
                     layout[x][y].setName(entry.getKey());
                     currentMachines.get(entry.getKey()).add(layout[x][y]);
                 }
                 else{
                     i--;
-                }
+                }*/
             }
         }
     }
@@ -84,24 +88,38 @@ public class Factory implements Comparable<Factory>{
 
     private void enforceRules(Factory factoryA, Factory factoryB){
         Random random = new Random();
-
+        currentMachines.get(Tiles.EMPTY).forEach(v ->{
+            if(!v.getName().equals(Tiles.EMPTY))
+                System.out.println("x: " + v.x + " y: " + v.y + " Name: " + v.getName());
+        });
         currentMachines.forEach((k,v)->{
             //remove too random too high one.
-            while(v.size() > rules.get(k)){
-                int r = random.nextInt(v.size());
-                v.get(r).setName(Tiles.EMPTY);
-                v.remove(r);
-            }
-            //add to random low member
-            while(v.size() < rules.get(k)){
-                int x = random.nextInt(layout.length);
-                int y = random.nextInt(layout[0].length);
+            if(!k.equals(Tiles.EMPTY)) {
+                while (v.size() > rules.get(k)) {
+                    int r = random.nextInt(v.size());
+                    v.get(r).setName(Tiles.EMPTY);
+                    currentMachines.get(Tiles.EMPTY).add(v.get(r));
+                    v.remove(r);
+                }
+                //add to random low member
+                while (v.size() < rules.get(k)) {
+                    int x = random.nextInt(currentMachines.get(Tiles.EMPTY).size());
+                    Machine m = currentMachines.get(Tiles.EMPTY).get(x);
+                    m.setName(k);
+                    currentMachines.get(k).add(m);
+                    currentMachines.get(Tiles.EMPTY).remove(m);
+                /*int y = random.nextInt(layout[0].length);
 
                 if(layout[x][y].getName().equals(Tiles.EMPTY)){
                     layout[x][y].setName(k);
                     v.add(layout[x][y]);
+                }*/
                 }
             }
+        });
+        currentMachines.get(Tiles.EMPTY).forEach(v ->{
+            if(!v.getName().equals(Tiles.EMPTY))
+                System.out.println("x: " + v.x + " y: " + v.y + " Name: " + v.getName());
         });
     }
 
@@ -153,11 +171,10 @@ public class Factory implements Comparable<Factory>{
         }
     }
 
-    public void setMachine(int x, int y, Machine t){
+    private void setMachine(int x, int y, Machine t){
         layout[x][y].setName(t.getName());
         currentMachines.forEach((k,v)->v.remove(t));
-        if(!t.getName().equals(Tiles.EMPTY))
-            currentMachines.get(t.getName()).add(t);
+        currentMachines.get(t.getName()).add(t);
     }
 
     public Machine getMachine(int x, int y){ return layout[x][y];    }
