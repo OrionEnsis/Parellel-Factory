@@ -13,13 +13,11 @@ import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 
-import java.util.concurrent.Executor;
+import java.util.Comparator;
+import java.util.concurrent.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class Controller {
     @FXML
@@ -119,7 +117,7 @@ public class Controller {
         }
     }
 
-    void createFactory() {
+    void createFactory()  {
         int threads = 32;
         ExecutorService executor = Executors.newFixedThreadPool(threads);
         ArrayList<FactoryBuilder> factoryBuilders = new ArrayList<>();
@@ -127,37 +125,23 @@ public class Controller {
             factoryBuilders.add(new FactoryBuilder(length,width,machines));
             executor.execute(factoryBuilders.get(i));
         }
-        executor.awaitTermination();
+        executor.shutdown();
+        try{
+            while(!executor.awaitTermination(1, TimeUnit.SECONDS))
+                System.out.println("Threads still processing");
+        }
+        catch(InterruptedException ie){
+            System.out.println("Threads interrupted for some reason.");
+        }
         factories = new ArrayList<>();
         factoryBuilders.forEach(f -> factories.add(f.getBestFactory()));
         factories.forEach(f->f.evaluateLayout());
-        Collections.sort(factories,Collections.reverseOrder());
-        /*
-        factories.add(new Factory(length,width,machines));
-        factories.add(new Factory(length,width,machines));
+        factories.sort((f1,f2)-> -f1.compareTo(f2));
 
-        factories.forEach(a -> a.generateNewLayout());
-        factories.forEach(a -> a.evaluateLayout());
-        factories.forEach(a -> System.out.println(a));
-
-        while(factories.size() < 100){
-            Collections.sort(factories);
-            ArrayList<Factory> children = new ArrayList<>();
-            for(int i = 1; i < factories.size(); i++){
-                children.add(factories.get(0).crossBreed(factories.get(i)));
-            }
-            factories.addAll(children);
-            factories.forEach(s -> s.evaluateLayout());
-            System.out.println(factories.size());
-        }
-
-        Collections.sort(factories,Collections.reverseOrder());
-        System.out.println(factories.get(0));
-        factories.forEach(s-> System.out.println(s.getScore()));*/
         makeImage(factories.get(0));
     }
 
-    public void makeImage(Factory f){
+    private void makeImage(Factory f){
         final int SCALE = 10;
         int imageHieght = length * SCALE;
         int imageWidth = width * SCALE;

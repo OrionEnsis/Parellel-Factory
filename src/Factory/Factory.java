@@ -15,14 +15,13 @@ public class Factory implements Comparable<Factory>{
         layout = new Machine[length][width];
 
         for(Tiles t: Tiles.values()){
-            if(!t.equals(Tiles.EMPTY)){
-                currentMachines.put(t,new ArrayList<>());
-            }
+            currentMachines.put(t,new ArrayList<>());
         }
 
         for (int i = 0; i < layout.length; i ++) {
             for (int j = 0; j < layout[0].length; j++) {
                 layout[i][j] = new Machine(i, j, Tiles.EMPTY);
+                currentMachines.get(Tiles.EMPTY).add(layout[i][j]);
             }
         }
     }
@@ -83,7 +82,7 @@ public class Factory implements Comparable<Factory>{
         return child;
     }
 
-    void enforceRules(Factory factoryA, Factory factoryB){
+    private void enforceRules(Factory factoryA, Factory factoryB){
         Random random = new Random();
 
         currentMachines.forEach((k,v)->{
