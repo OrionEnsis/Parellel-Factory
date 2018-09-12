@@ -118,7 +118,7 @@ public class Controller {
     }
 
     void createFactory()  {
-        int threads = 1;
+        int threads = 32;
         ExecutorService executor = Executors.newFixedThreadPool(threads);
         ArrayList<FactoryBuilder> factoryBuilders = new ArrayList<>();
         for(int i = 0; i < threads; i ++){

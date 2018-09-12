@@ -55,7 +55,7 @@ public class Factory implements Comparable<Factory>{
         //get matching tiles (keep these)
         for(int i = 0; i < layout.length;  i++){
             for(int j = 0; j < layout[0].length; j++){
-                if(layout[i][j].equals(otherFactory.getMachine(i,j))){
+                if(layout[i][j].compareTo(otherFactory.getMachine(i,j))==0){
                     child.setMachine(i,j,layout[i][j]);
                 }
                 else{
@@ -80,7 +80,7 @@ public class Factory implements Comparable<Factory>{
 
         //run mutation.
 
-        //evalueate performance
+        //evaluate performance
         evaluateLayout();
 
         return child;
@@ -92,17 +92,22 @@ public class Factory implements Comparable<Factory>{
             if(!v.getName().equals(Tiles.EMPTY))
                 System.out.println("x: " + v.x + " y: " + v.y + " Name: " + v.getName());
         });
-        currentMachines.forEach((k,v)->{
-            //remove too random too high one.
-            if(!k.equals(Tiles.EMPTY)) {
-                while (v.size() > rules.get(k)) {
-                    int r = random.nextInt(v.size());
-                    v.get(r).setName(Tiles.EMPTY);
-                    currentMachines.get(Tiles.EMPTY).add(v.get(r));
-                    v.remove(r);
+        currentMachines.forEach((k,v)-> {
+                //remove too random too high one.
+                if (!k.equals(Tiles.EMPTY)) {
+                    while (v.size() > rules.get(k)) {
+                        int r = random.nextInt(v.size());
+                        v.get(r).setName(Tiles.EMPTY);
+                        currentMachines.get(Tiles.EMPTY).add(v.get(r));
+                        v.remove(r);
+                    }
                 }
+            });
+        currentMachines.forEach((k,v)->{
+            if(!k.equals(Tiles.EMPTY)){
                 //add to random low member
                 while (v.size() < rules.get(k)) {
+                    //TODO should choose from parent for determining new element placing.
                     int x = random.nextInt(currentMachines.get(Tiles.EMPTY).size());
                     Machine m = currentMachines.get(Tiles.EMPTY).get(x);
                     m.setName(k);
@@ -120,6 +125,7 @@ public class Factory implements Comparable<Factory>{
         currentMachines.get(Tiles.EMPTY).forEach(v ->{
             if(!v.getName().equals(Tiles.EMPTY))
                 System.out.println("x: " + v.x + " y: " + v.y + " Name: " + v.getName());
+                v.setName(Tiles.EMPTY);
         });
     }
 
@@ -172,9 +178,10 @@ public class Factory implements Comparable<Factory>{
     }
 
     private void setMachine(int x, int y, Machine t){
+        Machine m = layout[x][y];
+        currentMachines.forEach((k,v)->v.remove(m));
+        currentMachines.get(t.getName()).add(m);
         layout[x][y].setName(t.getName());
-        currentMachines.forEach((k,v)->v.remove(t));
-        currentMachines.get(t.getName()).add(t);
     }
 
     public Machine getMachine(int x, int y){ return layout[x][y];    }
