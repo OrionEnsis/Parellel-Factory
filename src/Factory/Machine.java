@@ -1,7 +1,7 @@
 package Factory;
 
 public class Machine implements Comparable<Machine> {
-    public void setName(Tiles name) {
+    void setName(Tiles name) {
         this.name = name;
     }
 
@@ -23,7 +23,7 @@ public class Machine implements Comparable<Machine> {
         return name;
     }
 
-    public static int compareTiles(Tiles a, Tiles b){
+    static int compareTiles(Tiles a, Tiles b){
         int aValue = getTileValue(a);
         int bValue = getTileValue(b);
         if (a.equals(b) || a.equals(Tiles.EMPTY) || b.equals(Tiles.EMPTY)){

@@ -42,5 +42,7 @@
       </rowConstraints>
     </GridPane>
     <ImageView fx:id="factoryLayout" fitHeight="233.0" fitWidth="310.66666666666663" layoutX="34.0" layoutY="38.0" pickOnBounds="true" preserveRatio="true" />
+    <Label layoutX="34.0" layoutY="14.0" text="Affinity" />
+    <Label fx:id="scoreListed" layoutX="83.0" layoutY="14.0" prefWidth="92.0" text="" />
   </children>
 </AnchorPane>

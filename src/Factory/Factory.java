@@ -2,10 +2,11 @@ package Factory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Random;
 
 public class Factory implements Comparable<Factory>{
-    private int score;
+    private double score;
     private Machine[][] layout;
     private HashMap<Tiles,Integer> rules;
     private HashMap<Tiles,ArrayList<Machine>> currentMachines = new HashMap<>();
@@ -26,7 +27,7 @@ public class Factory implements Comparable<Factory>{
         }
     }
 
-    public void generateNewLayout(){
+    void generateNewLayout(){
         Random r = new Random();
         for(HashMap.Entry<Tiles,Integer> entry: rules.entrySet()){
             for(int i = 0; i < entry.getValue(); i++){
@@ -35,19 +36,11 @@ public class Factory implements Comparable<Factory>{
                 m.setName(entry.getKey());
                 currentMachines.get(entry.getKey()).add(m);
                 currentMachines.get(Tiles.EMPTY).remove(m);
-                /*int y = r.nextInt(layout[0].length);
-                if(layout[x][y].getName().equals(Tiles.EMPTY)){
-                    layout[x][y].setName(entry.getKey());
-                    currentMachines.get(entry.getKey()).add(layout[x][y]);
-                }
-                else{
-                    i--;
-                }*/
             }
         }
     }
 
-    public Factory crossBreed(Factory otherFactory){
+    Factory crossBreed(Factory otherFactory){
         Random random = new Random();
         Factory child = new Factory(layout.length,layout[0].length, rules);
         ArrayList<Machine> nonMatchingMachines = new ArrayList<>();
@@ -55,7 +48,7 @@ public class Factory implements Comparable<Factory>{
         //get matching tiles (keep these)
         for(int i = 0; i < layout.length;  i++){
             for(int j = 0; j < layout[0].length; j++){
-                if(layout[i][j].compareTo(otherFactory.getMachine(i,j))==0){
+                if(layout[i][j].compareTo(otherFactory.getMachine(i,j)) == 0){
                     child.setMachine(i,j,layout[i][j]);
                 }
                 else{
@@ -88,10 +81,6 @@ public class Factory implements Comparable<Factory>{
 
     private void enforceRules(Factory factoryA, Factory factoryB){
         Random random = new Random();
-        currentMachines.get(Tiles.EMPTY).forEach(v ->{
-            if(!v.getName().equals(Tiles.EMPTY))
-                System.out.println("x: " + v.x + " y: " + v.y + " Name: " + v.getName());
-        });
         currentMachines.forEach((k,v)-> {
                 //remove too random too high one.
                 if (!k.equals(Tiles.EMPTY)) {
@@ -113,24 +102,9 @@ public class Factory implements Comparable<Factory>{
                     m.setName(k);
                     currentMachines.get(k).add(m);
                     currentMachines.get(Tiles.EMPTY).remove(m);
-                /*int y = random.nextInt(layout[0].length);
-
-                if(layout[x][y].getName().equals(Tiles.EMPTY)){
-                    layout[x][y].setName(k);
-                    v.add(layout[x][y]);
-                }*/
                 }
             }
         });
-        currentMachines.get(Tiles.EMPTY).forEach(v ->{
-            if(!v.getName().equals(Tiles.EMPTY))
-                System.out.println("x: " + v.x + " y: " + v.y + " Name: " + v.getName());
-                v.setName(Tiles.EMPTY);
-        });
-    }
-
-    public void mutate(float percentSwap){
-
     }
 
     public void evaluateLayout(){
@@ -138,20 +112,45 @@ public class Factory implements Comparable<Factory>{
 
         for(int i = 0; i < layout.length; i++){
             for(int j = 0; j < layout[0].length; j++){
-                if( i > 0){
-                    score += compareMachines(layout[i][j],layout[i-1][j]);
-                }
-                if( j > 0){
-                    score += compareMachines(layout[i][j],layout[i][j-1]);
-                }
-                if( i > 0 && j > 0){
-                    score += compareMachines(layout[i][j],layout[i-1][j-1]);
+                HashSet<Machine> machines = getNeighbors(i,j,3);
+                for(Machine m: machines){
+                    score += scoreInt(layout[i][j],m);
+                    //System.out.println(scoreInt(layout[i][j],m));
                 }
             }
         }
+        //System.out.println(score);
+    }
+    private double scoreInt(Machine a, Machine b){
+        if(compareMachines(a,b)<0){
+            return 1*compareMachines(a,b);
+        }
+        if(!(a.x-b.x == 0 && a.y - b.y == 0))
+            return (compareMachines(a,b)*1d)/Math.sqrt(((Math.pow(a.x-b.x,2)+Math.pow(a.y-b.y,2))));
+        else{
+            return 0;
+        }
+    }
+    private HashSet<Machine> getNeighbors(int x, int y, int recurse){
+        if( x < 0 || x >= layout.length || y < 0 || y >= layout[0].length){
+            return new HashSet<>();
+        }
+        HashSet<Machine> machines = new HashSet<>();
+        machines.add(layout[x][y]);
+        if (recurse > 0) {
+            for(Machine m: machines) {
+                machines.addAll(getNeighbors(m.x, m.y-1, recurse - 1));
+                machines.addAll(getNeighbors(m.x-1, m.y, recurse - 1));
+                machines.addAll(getNeighbors(m.x+1, m.y, recurse - 1));
+                machines.addAll(getNeighbors(m.x, m.y+1, recurse - 1));
+            }
+        }
+        return machines;
     }
 
-    int compareMachines(Machine a, Machine b){
+    private static int compareMachines(Machine a, Machine b){
+        if(a.getName().equals(b.getName()))
+            return -1;
         return Machine.compareTiles(a.getName(),b.getName());
     }
 
@@ -167,6 +166,7 @@ public class Factory implements Comparable<Factory>{
         return sum;
     }
 
+    //TODO needs work.
     public void copyLayout(Machine[][] layout){
         this.layout = new Machine[layout.length][];
         for(int i = 0; i < layout.length; i++){
@@ -174,6 +174,7 @@ public class Factory implements Comparable<Factory>{
             int j = layout[i].length;
             this.layout[i] = new Machine[j];
             System.arraycopy(layout[i],0,this.layout[i],0,this.layout[i].length);
+
         }
     }
 
@@ -190,15 +191,16 @@ public class Factory implements Comparable<Factory>{
         return layout;
     }
 
-    public int getScore(){
+    public double getScore(){
         return score;
     }
 
     @Override
     public int compareTo(Factory o){
-        return Integer.compare(getScore(),o.getScore());
+        return Double.compare(getScore(),o.getScore());
     }
 
+    @SuppressWarnings({"ForLoopReplaceableByForEach", "StringConcatenationInLoop"})
     @Override
     public String toString() {
         String temp = "";

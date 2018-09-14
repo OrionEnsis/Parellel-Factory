@@ -1,9 +1,12 @@
 package Factory;
 
+import Gui.Controller;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.concurrent.Exchanger;
 
 public class FactoryBuilder implements Runnable{
     public Factory bestFactory;
@@ -11,10 +14,11 @@ public class FactoryBuilder implements Runnable{
     private ArrayList<Factory> factories;
     private final int SIZE = 32;
     private final int MAX_GENERATIONS = 128;
-    int x;
-    int y;
+    private int x;
+    private int y;
 
-    public FactoryBuilder(int x, int y,HashMap<Tiles,Integer> rules){
+    @SuppressWarnings("SuspiciousNameCombination")
+    public FactoryBuilder(int x, int y, HashMap<Tiles,Integer> rules){
         this.rules = rules;
         this.x = x;
         this.y = y;
@@ -34,7 +38,8 @@ public class FactoryBuilder implements Runnable{
     }
 
     private void newGeneration(){
-        Collections.sort(factories,Collections.reverseOrder());
+        factories.sort(Collections.reverseOrder());
+        makeImage(factories.get(0));
         factories.subList(SIZE/2,factories.size()).clear();
         int size  = factories.size();
         for(int i = 0; i < size-1; i ++){
@@ -43,6 +48,48 @@ public class FactoryBuilder implements Runnable{
                 factories.add(factories.get(0).crossBreed(factories.get(2)));
             }
         }
+    }
+
+    void makeImage(Factory f){
+        final int SCALE = 10;
+        int imageHeight = x * SCALE;
+        int imageWidth = y * SCALE;
+        WritableImage image = new WritableImage(imageWidth,imageHeight);
+        PixelWriter pixelWriter = image.getPixelWriter();
+        for(int i = 0; i < image.getWidth(); i++){
+            for(int j = 0; j < image.getHeight(); j++){
+                Tiles t = f.getMachine(i/SCALE,j/SCALE).getName();
+                Color c = determineColor(t);
+                pixelWriter.setColor(i,j,c);
+            }
+        }
+        //Controller.instance.setScoreListed(f.getScore());
+        Controller.instance.setImage(image,f.getScore());
+
+    }
+
+    private Color determineColor(Tiles t){
+        Color c = Color.ALICEBLUE;
+        switch(t){
+            case EMPTY:
+                c = Color.WHITE;
+                break;
+            case E:
+                c = Color.RED;
+                break;
+            case D:
+                c = Color.BLUE;
+                break;
+            case C:
+                c = Color.GREEN;
+                break;
+            case B:
+                c = Color.YELLOW;
+                break;
+            case A:
+                c = Color.ORANGE;
+        }
+        return c;
     }
     public Factory getBestFactory(){
         return factories.get(0);

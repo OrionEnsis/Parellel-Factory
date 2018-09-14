@@ -2,21 +2,17 @@ package Gui;
 
 import Factory.Factory;
 import Factory.FactoryBuilder;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.event.ActionEvent;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import Factory.Tiles;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
-import javafx.scene.paint.Color;
-
-import java.util.Comparator;
 import java.util.concurrent.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 
 public class Controller {
@@ -36,17 +32,23 @@ public class Controller {
     private TextField eField;
     @FXML
     private ImageView factoryLayout;
+    @FXML
+    private Label scoreListed;
+
     private int length;
     private int width;
     private HashMap<Tiles,Integer> machines;
     private ArrayList<Factory> factories;
-    private Alert alert;
-
     private final int MINIMUM_MACHINES = 32;
+    private double currentHighScore;
+    public static Controller instance;
 
     @FXML
     public void onBuildFactory(ActionEvent event){
+        instance = this;
         boolean success = true;
+        currentHighScore = 0;
+        scoreListed.setText("0");
 
         int sum = 0;
         try{
@@ -113,11 +115,26 @@ public class Controller {
         }
 
         if (success){
-            createFactory();
+            Thread thread = new Thread(()->createFactory());
+            thread.start();
+            //createFactory();
+
         }
     }
 
-    void createFactory()  {
+    public void setImage(Image i,double score){
+        Platform.runLater(()->{
+            if (score > currentHighScore) {
+                currentHighScore = score;
+                factoryLayout.setImage(i);
+                scoreListed.setText("" + currentHighScore);
+            }
+        });
+
+    }
+
+    @SuppressWarnings("SuspiciousNameCombination")
+    private void createFactory()  {
         int threads = 32;
         ExecutorService executor = Executors.newFixedThreadPool(threads);
         ArrayList<FactoryBuilder> factoryBuilders = new ArrayList<>();
@@ -137,14 +154,14 @@ public class Controller {
         factoryBuilders.forEach(f -> factories.add(f.getBestFactory()));
         factories.forEach(f->f.evaluateLayout());
         factories.sort((f1,f2)-> -f1.compareTo(f2));
-        makeImage(factories.get(0));
+        //makeImage(factories.get(0));
     }
-
-    private void makeImage(Factory f){
+/*
+    void makeImage(Factory f){
         final int SCALE = 10;
-        int imageHieght = length * SCALE;
+        int imageHeight = length * SCALE;
         int imageWidth = width * SCALE;
-        WritableImage image = new WritableImage(imageWidth,imageHieght);
+        WritableImage image = new WritableImage(imageWidth,imageHeight);
         PixelWriter pixelWriter = image.getPixelWriter();
         for(int i = 0; i < image.getWidth(); i++){
             for(int j = 0; j < image.getHeight(); j++){
@@ -177,9 +194,9 @@ public class Controller {
                 c = Color.ORANGE;
         }
         return c;
-    }
+    }*/
     private void error(TextField focus, String message){
-        alert = new Alert(Alert.AlertType.ERROR);
+        Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setHeaderText("Error");
         alert.setContentText(message);
         alert.showAndWait();
