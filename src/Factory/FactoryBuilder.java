@@ -10,7 +10,6 @@ import java.util.HashMap;
 
 public class FactoryBuilder implements Runnable{
     public Factory bestFactory;
-    private HashMap<Tiles,Integer> rules;
     private ArrayList<Factory> factories;
     private final int SIZE = 32;
     private final int MAX_GENERATIONS = 128;
@@ -19,7 +18,6 @@ public class FactoryBuilder implements Runnable{
 
     @SuppressWarnings("SuspiciousNameCombination")
     public FactoryBuilder(int x, int y, HashMap<Tiles,Integer> rules){
-        this.rules = rules;
         this.x = x;
         this.y = y;
         factories = new ArrayList<>();
@@ -50,7 +48,7 @@ public class FactoryBuilder implements Runnable{
         }
     }
 
-    void makeImage(Factory f){
+    private void makeImage(Factory f){
         final int SCALE = 10;
         int imageHeight = x * SCALE;
         int imageWidth = y * SCALE;

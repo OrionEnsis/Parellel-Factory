@@ -19,7 +19,7 @@ public class Machine implements Comparable<Machine> {
         return name.compareTo(o.getName());
     }
 
-    public Tiles getName(){
+    Tiles getName(){
         return name;
     }
 

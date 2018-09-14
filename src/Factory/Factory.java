@@ -122,11 +122,13 @@ public class Factory implements Comparable<Factory>{
         //System.out.println(score);
     }
     private double scoreInt(Machine a, Machine b){
+        double negativeResultModifier = 1d;
+        double positiveResultModifier = 1d;
         if(compareMachines(a,b)<0){
-            return 1*compareMachines(a,b);
+            return negativeResultModifier * compareMachines(a,b);
         }
         if(!(a.x-b.x == 0 && a.y - b.y == 0))
-            return (compareMachines(a,b)*1d)/Math.sqrt(((Math.pow(a.x-b.x,2)+Math.pow(a.y-b.y,2))));
+            return (compareMachines(a,b) * positiveResultModifier)/Math.sqrt(((Math.pow(a.x-b.x,2)+Math.pow(a.y-b.y,2))));
         else{
             return 0;
         }
@@ -185,13 +187,13 @@ public class Factory implements Comparable<Factory>{
         layout[x][y].setName(t.getName());
     }
 
-    public Machine getMachine(int x, int y){ return layout[x][y];    }
+    Machine getMachine(int x, int y){ return layout[x][y];    }
 
     public Machine[][] getLayout(){
         return layout;
     }
 
-    public double getScore(){
+    double getScore(){
         return score;
     }
 

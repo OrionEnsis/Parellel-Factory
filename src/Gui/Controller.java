@@ -115,7 +115,7 @@ public class Controller {
         }
 
         if (success){
-            Thread thread = new Thread(()->createFactory());
+            Thread thread = new Thread(this::createFactory);
             thread.start();
             //createFactory();
 
