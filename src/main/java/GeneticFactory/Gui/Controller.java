@@ -154,6 +154,8 @@ public class Controller {
         factoryBuilders.forEach(f -> factories.add(f.getBestFactory()));
         factories.forEach(f->f.evaluateLayout());
         factories.sort((f1,f2)-> -f1.compareTo(f2));
+
+        System.out.println("Done!");
         //makeImage(factories.get(0));
     }
 /*

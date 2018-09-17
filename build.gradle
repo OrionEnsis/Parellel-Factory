@@ -1,0 +1,39 @@
+buildscript {
+    dependencies {
+        classpath group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2'
+    }
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'java'
+    id 'net.ltgt.errorprone' version '0.6'
+}
+
+group 'Parellel Factory'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+apply plugin: 'java'
+apply plugin: 'net.ltgt.errorprone'
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+apply plugin: 'javafx-gradle-plugin'
+jfx {
+    // minimal requirement for jfxJar-task
+    mainClass = 'GeneticFactory.Gui.Main'
+
+    // minimal requirement for jfxNative-task
+    vendor = 'Jim Spagnola III'
+}

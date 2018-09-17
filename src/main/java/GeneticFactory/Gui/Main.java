@@ -11,7 +11,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         int a = 2;
-        Parent root = FXMLLoader.load(getClass().getResource("src/main/Gui/Parallel.fxml"));
+        Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("fxml/Parallel.fxml"));
         primaryStage.setTitle("Parallel Factory");
         primaryStage.setScene(new Scene(root, 600, 350));
         primaryStage.show();
