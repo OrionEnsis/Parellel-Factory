@@ -1,14 +1,14 @@
-package Gui;
+package GeneticFactory.Gui;
 
-import Factory.Factory;
-import Factory.FactoryBuilder;
+import GeneticFactory.Factory.Factory;
+import GeneticFactory.Factory.FactoryBuilder;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import Factory.Tiles;
+import GeneticFactory.Factory.Tiles;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import java.util.concurrent.*;

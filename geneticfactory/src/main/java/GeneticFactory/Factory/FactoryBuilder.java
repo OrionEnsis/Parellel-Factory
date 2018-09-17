@@ -1,6 +1,6 @@
-package Factory;
+package GeneticFactory.Factory;
 
-import Gui.Controller;
+import GeneticFactory.Gui.Controller;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;

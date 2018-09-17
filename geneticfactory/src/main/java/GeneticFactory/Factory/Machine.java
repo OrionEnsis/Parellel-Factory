@@ -1,4 +1,4 @@
-package Factory;
+package GeneticFactory.Factory;
 
 public class Machine implements Comparable<Machine> {
     void setName(Tiles name) {

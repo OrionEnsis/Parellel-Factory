@@ -1,4 +1,4 @@
-package Gui;
+package GeneticFactory.Gui;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -10,7 +10,8 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("Parallel.fxml"));
+        int a = 2;
+        Parent root = FXMLLoader.load(getClass().getResource("src/main/Gui/Parallel.fxml"));
         primaryStage.setTitle("Parallel Factory");
         primaryStage.setScene(new Scene(root, 600, 350));
         primaryStage.show();

@@ -1,4 +1,4 @@
-package Factory;
+package GeneticFactory.Factory;
 
 import java.util.ArrayList;
 import java.util.HashMap;

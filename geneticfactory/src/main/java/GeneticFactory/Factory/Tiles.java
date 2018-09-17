@@ -1,4 +1,4 @@
-package Factory;
+package GeneticFactory.Factory;
 
 public enum Tiles {
     EMPTY,
