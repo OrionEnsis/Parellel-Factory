@@ -40,7 +40,7 @@ public class Controller {
     private HashMap<Tiles,Integer> machines;
     private ArrayList<Factory> factories;
     private final int MINIMUM_MACHINES = 32;
-    private double currentHighScore;
+    private double currentHighScore = Double.MIN_VALUE;
     public static Controller instance;
 
     @FXML
@@ -49,6 +49,7 @@ public class Controller {
         boolean success = true;
         currentHighScore = 0;
         scoreListed.setText("0");
+
 
         int sum = 0;
         try{
@@ -122,11 +123,13 @@ public class Controller {
         }
     }
 
-    public void setImage(Image i,double score){
+    public synchronized void setImage(Image i,double score){
         Platform.runLater(()->{
-            if (score > currentHighScore) {
+            if (score >= currentHighScore) {
                 currentHighScore = score;
                 factoryLayout.setImage(i);
+                //factoryLayout.setFitHeight(250);
+                //factoryLayout.setFitWidth(250);
                 scoreListed.setText("" + currentHighScore);
             }
         });
@@ -135,7 +138,7 @@ public class Controller {
 
     @SuppressWarnings("SuspiciousNameCombination")
     private void createFactory()  {
-        int threads = 32;
+        int threads = 2;
         ExecutorService executor = Executors.newFixedThreadPool(threads);
         ArrayList<FactoryBuilder> factoryBuilders = new ArrayList<>();
         for(int i = 0; i < threads; i ++){
@@ -152,7 +155,7 @@ public class Controller {
         }
         factories = new ArrayList<>();
         factoryBuilders.forEach(f -> factories.add(f.getBestFactory()));
-        factories.forEach(f->f.evaluateLayout());
+        factories.forEach(Factory::evaluateLayout);
         factories.sort((f1,f2)-> -f1.compareTo(f2));
 
         System.out.println("Done!");

@@ -12,7 +12,8 @@ public class FactoryBuilder implements Runnable{
     public Factory bestFactory;
     private ArrayList<Factory> factories;
     private final int SIZE = 32;
-    private final int MAX_GENERATIONS = 128;
+    private final int MAX_GENERATIONS = 1024;
+    private final double PERCENT = .1;
     private int x;
     private int y;
 
@@ -33,21 +34,29 @@ public class FactoryBuilder implements Runnable{
         for(int i = 0; i < MAX_GENERATIONS; i++){
             newGeneration();
         }
+        System.out.println("Thread done.");
     }
 
     private void newGeneration(){
         factories.sort(Collections.reverseOrder());
         makeImage(factories.get(0));
-        factories.subList(SIZE/2,factories.size()).clear();
-        int size  = factories.size();
-        for(int i = 0; i < size-1; i ++){
+
+        for(int i = 0; i < SIZE; i ++){
             factories.add(factories.get(i).crossBreed(factories.get(i+1)));
             if(i == 0){
                 factories.add(factories.get(0).crossBreed(factories.get(2)));
             }
         }
+        factories.subList(SIZE,factories.size()).clear();
+        mutate();
     }
 
+    void mutate(){
+        for(int i = 0; i < SIZE; i ++){
+            factories.get(i).mutate(PERCENT);
+        }
+
+    }
     private void makeImage(Factory f){
         final int SCALE = 10;
         int imageHeight = x * SCALE;

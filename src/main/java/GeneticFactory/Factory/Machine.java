@@ -1,17 +1,66 @@
 package GeneticFactory.Factory;
 
 public class Machine implements Comparable<Machine> {
-    void setName(Tiles name) {
-        this.name = name;
-    }
+
 
     Tiles name;
     int x,y;
-
+    int flowrate;
+    int flowThisGeneration;
+    private Tiles inputMachine;
+    private Tiles outputMachine;
     public Machine( int x, int y, Tiles name){
         this.name = name;
         this.x = x;
         this.y = y;
+        getInputMachine();
+        getOutputMachine();
+    }
+
+    private void getInputMachine(){
+        switch(name){
+            case A:
+                inputMachine = null;
+                break;
+            case B:
+                inputMachine =  Tiles.A;
+                break;
+            case C:
+                inputMachine =  Tiles.B;
+                break;
+            case D:
+                inputMachine =  Tiles.C;
+                break;
+            case E:
+                inputMachine =  Tiles.D;
+                break;
+            case EMPTY:
+                inputMachine = null;
+                break;
+        }
+    }
+
+    private void getOutputMachine(){
+        switch(name){
+            case A:
+                outputMachine = Tiles.B;
+                break;
+            case B:
+                outputMachine =  Tiles.C;
+                break;
+            case C:
+                outputMachine =  Tiles.D;
+                break;
+            case D:
+                outputMachine =  Tiles.E;
+                break;
+            case E:
+                outputMachine =  Tiles.EMPTY;
+                break;
+            case EMPTY:
+                outputMachine = null;
+                break;
+        }
     }
 
     @Override
@@ -23,16 +72,32 @@ public class Machine implements Comparable<Machine> {
         return name;
     }
 
+    void setName(Tiles name) {
+        this.name = name;
+        getInputMachine();
+        getOutputMachine();
+    }
+
     static int compareTiles(Tiles a, Tiles b){
-        int aValue = getTileValue(a);
-        int bValue = getTileValue(b);
+        int aValue = getProductionRate(a);
+        int bValue = getProductionRate(b);
         if (a.equals(b) || a.equals(Tiles.EMPTY) || b.equals(Tiles.EMPTY)){
             return 0;
         }
         return (aValue + bValue) % 6;
     }
 
-    private static int getTileValue(Tiles a){
+    int scoreMachine(Machine other){
+        int distance = Math.abs(x-other.x + y - other.y);
+        if (distance != 0 && (other.getName().equals(inputMachine) || other.getName().equals(outputMachine))){
+            return 3/distance;
+        }
+        else
+            return 0;
+    }
+
+
+    private static int getProductionRate(Tiles a){
         switch(a){
             case A:
                 return 1;

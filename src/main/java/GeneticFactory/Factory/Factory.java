@@ -10,6 +10,7 @@ public class Factory implements Comparable<Factory>{
     private Machine[][] layout;
     private HashMap<Tiles,Integer> rules;
     private HashMap<Tiles,ArrayList<Machine>> currentMachines = new HashMap<>();
+    private final int TOTAL_TILES;
 
     public Factory (int length, int width, HashMap<Tiles,Integer> rules) {
         this.rules = new HashMap<>(rules);
@@ -25,6 +26,7 @@ public class Factory implements Comparable<Factory>{
                 currentMachines.get(Tiles.EMPTY).add(layout[i][j]);
             }
         }
+        TOTAL_TILES = length *width;
     }
 
     void generateNewLayout(){
@@ -71,8 +73,6 @@ public class Factory implements Comparable<Factory>{
         //count each machine type.
         child.enforceRules(this,otherFactory);
 
-        //run mutation.
-
         //evaluate performance
         evaluateLayout();
 
@@ -115,15 +115,27 @@ public class Factory implements Comparable<Factory>{
                 HashSet<Machine> machines = getNeighbors(i,j,3);
                 for(Machine m: machines){
                     score += scoreInt(layout[i][j],m);
-                    //System.out.println(scoreInt(layout[i][j],m));
                 }
             }
         }
-        //System.out.println(score);
     }
+
+    public void mutate(double percent){
+        int tilesToSwap = (int)((TOTAL_TILES * percent)/2);
+        Factory m = new Factory(layout.length,layout[0].length,rules);
+        m.copyLayout(this.layout);
+        Machine[][] tempLayout = m.getLayout();
+        Random random = new Random();
+        for (int i = 0; i < tilesToSwap; i++) {
+            int x = random.nextInt(layout.length);
+            int y = random.nextInt(layout[0].length);
+        }
+    }
+
     private double scoreInt(Machine a, Machine b){
-        double negativeResultModifier = 1d;
+        /*double negativeResultModifier = .0001d;
         double positiveResultModifier = 1d;
+
         if(compareMachines(a,b)<0){
             return negativeResultModifier * compareMachines(a,b);
         }
@@ -131,7 +143,8 @@ public class Factory implements Comparable<Factory>{
             return (compareMachines(a,b) * positiveResultModifier)/Math.sqrt(((Math.pow(a.x-b.x,2)+Math.pow(a.y-b.y,2))));
         else{
             return 0;
-        }
+        }*/
+        return a.scoreMachine(b);
     }
     private HashSet<Machine> getNeighbors(int x, int y, int recurse){
         if( x < 0 || x >= layout.length || y < 0 || y >= layout[0].length){
@@ -169,7 +182,7 @@ public class Factory implements Comparable<Factory>{
     }
 
     //TODO needs work.
-    public void copyLayout(Machine[][] layout){
+    private void copyLayout(Machine[][] layout){
         this.layout = new Machine[layout.length][];
         for(int i = 0; i < layout.length; i++){
             Machine[] amatrix = layout[i];
@@ -189,7 +202,7 @@ public class Factory implements Comparable<Factory>{
 
     Machine getMachine(int x, int y){ return layout[x][y];    }
 
-    public Machine[][] getLayout(){
+    private Machine[][] getLayout(){
         return layout;
     }
 
