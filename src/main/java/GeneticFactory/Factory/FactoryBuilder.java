@@ -7,20 +7,26 @@ import javafx.scene.paint.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.concurrent.Exchanger;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class FactoryBuilder implements Runnable{
     public Factory bestFactory;
+    private Exchanger<Factory> exchanger = new Exchanger<>();
     private ArrayList<Factory> factories;
     private final int SIZE = 32;
-    private final int MAX_GENERATIONS = 1024;
+    private final int MAX_GENERATIONS = 128;
     private final double PERCENT = .1;
     private int x;
     private int y;
+    HashMap<Tiles,Integer> rules;
 
     @SuppressWarnings("SuspiciousNameCombination")
     public FactoryBuilder(int x, int y, HashMap<Tiles,Integer> rules){
         this.x = x;
         this.y = y;
+        this.rules = rules;
         factories = new ArrayList<>();
         for (int i = 0; i < SIZE; i ++) {
             Factory f = new Factory(x,y,rules);
@@ -31,8 +37,24 @@ public class FactoryBuilder implements Runnable{
     }
     @Override
     public void run() {
-        for(int i = 0; i < MAX_GENERATIONS; i++){
-            newGeneration();
+        for(int x = 0; x < 32; x++) {
+            for (int i = 0; i < MAX_GENERATIONS; i++) {
+                newGeneration();
+            }
+            try {
+                factories.sort(Collections.reverseOrder());
+                Factory f = new Factory(x,y,rules);
+                f.copyLayout(factories.get(0).getLayout());
+                f = exchanger.exchange(f,10, TimeUnit.SECONDS);
+                factories.add(f);
+                System.out.println("Exchange Occured");
+            } catch (InterruptedException e) {
+                System.out.println("Exchange Interrupted.");
+                e.printStackTrace();
+            } catch (TimeoutException e) {
+                System.out.println("Exchanger Timeout");
+            }
+            System.out.println("Cycle " + x);
         }
         System.out.println("Thread done.");
     }
@@ -47,7 +69,10 @@ public class FactoryBuilder implements Runnable{
                 factories.add(factories.get(0).crossBreed(factories.get(2)));
             }
         }
+        factories.sort(Collections.reverseOrder());
         factories.subList(SIZE,factories.size()).clear();
+        //factories.forEach(f->System.out.println(f.getScore()));
+        System.out.println(factories.get(0).getScore());
         mutate();
     }
 

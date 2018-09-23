@@ -11,7 +11,7 @@ buildscript {
 
 plugins {
     id 'java'
-    id 'net.ltgt.errorprone' version '0.6'
+    id "net.ltgt.errorprone-javacplugin" version "0.6"
 }
 
 group 'Parellel Factory'
@@ -23,13 +23,21 @@ repositories {
     mavenLocal()
     mavenCentral()
 }
-apply plugin: 'java'
-apply plugin: 'net.ltgt.errorprone'
+
+
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'com.google.errorprone', name: 'error_prone_core', version: '2.3.1'
+    errorprone("com.google.errorprone:error_prone_core:2.3.1")
+    compile group: 'com.google.errorprone', name: 'javac', version: '9+181-r4173-1'
+    errorproneJavac("com.google.errorprone:javac:9+181-r4173-1")
 }
+apply plugin: 'java'
+apply plugin: 'net.ltgt.errorprone'
+apply plugin: "net.ltgt.errorprone-javacplugin"
 apply plugin: 'javafx-gradle-plugin'
+
 jfx {
     // minimal requirement for jfxJar-task
     mainClass = 'GeneticFactory.Gui.Main'

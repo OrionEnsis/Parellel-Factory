@@ -118,6 +118,35 @@ public class Factory implements Comparable<Factory>{
                 }
             }
         }
+        currentMachines.get(Tiles.A).forEach(Machine::makeProduct);
+        currentMachines.get(Tiles.B).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.B).forEach(Machine::makeProduct);
+
+        currentMachines.get(Tiles.A).forEach(Machine::makeProduct);
+        currentMachines.get(Tiles.B).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.B).forEach(Machine::makeProduct);
+        currentMachines.get(Tiles.C).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.C).forEach(Machine::makeProduct);
+
+        currentMachines.get(Tiles.A).forEach(Machine::makeProduct);
+        currentMachines.get(Tiles.B).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.B).forEach(Machine::makeProduct);
+        currentMachines.get(Tiles.C).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.C).forEach(Machine::makeProduct);
+        currentMachines.get(Tiles.D).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.D).forEach(Machine::makeProduct);
+
+        currentMachines.get(Tiles.A).forEach(Machine::makeProduct);
+        currentMachines.get(Tiles.B).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.B).forEach(Machine::makeProduct);
+        currentMachines.get(Tiles.C).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.C).forEach(Machine::makeProduct);
+        currentMachines.get(Tiles.D).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.D).forEach(Machine::makeProduct);
+        currentMachines.get(Tiles.E).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.E).forEach(Machine::makeProduct);
+        currentMachines.get(Tiles.E).forEach(m->score +=m.getProduct(10000));
+        currentMachines.forEach((k,v)->v.forEach(m->m.resetMachine()));
     }
 
     public void mutate(double percent){
@@ -127,8 +156,16 @@ public class Factory implements Comparable<Factory>{
         Machine[][] tempLayout = m.getLayout();
         Random random = new Random();
         for (int i = 0; i < tilesToSwap; i++) {
-            int x = random.nextInt(layout.length);
-            int y = random.nextInt(layout[0].length);
+            int x1 = random.nextInt(layout.length);
+            int y1 = random.nextInt(layout[0].length);
+            int x2 = random.nextInt(layout.length);
+            int y2 = random.nextInt(layout[0].length);
+            m.setMachine(x1,y1,layout[x2][y2]);
+        }
+        m.enforceRules(this,this);
+        m.evaluateLayout();
+        if(this.getScore() <m.getScore()){
+            this.copyLayout(m.getLayout());
         }
     }
 
@@ -182,17 +219,20 @@ public class Factory implements Comparable<Factory>{
     }
 
     //TODO needs work.
-    private void copyLayout(Machine[][] layout){
+    void copyLayout(Machine[][] layout){
+        for(Tiles t: Tiles.values()){
+            currentMachines.put(t,new ArrayList<>());
+        }
         this.layout = new Machine[layout.length][];
         for(int i = 0; i < layout.length; i++){
-            Machine[] amatrix = layout[i];
-            int j = layout[i].length;
-            this.layout[i] = new Machine[j];
-            System.arraycopy(layout[i],0,this.layout[i],0,this.layout[i].length);
+            this.layout[i] = new Machine[layout[0].length];
+            for(int j = 0; j < this.layout[0].length; j++){
+                this.layout[i][j] = new Machine(layout[i][j]);
+                setMachine(i,j,layout[i][j]);
+            }
 
         }
     }
-
     private void setMachine(int x, int y, Machine t){
         Machine m = layout[x][y];
         currentMachines.forEach((k,v)->v.remove(m));
@@ -202,7 +242,7 @@ public class Factory implements Comparable<Factory>{
 
     Machine getMachine(int x, int y){ return layout[x][y];    }
 
-    private Machine[][] getLayout(){
+    Machine[][] getLayout(){
         return layout;
     }
 

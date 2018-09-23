@@ -138,7 +138,7 @@ public class Controller {
 
     @SuppressWarnings("SuspiciousNameCombination")
     private void createFactory()  {
-        int threads = 2;
+        int threads = 4;
         ExecutorService executor = Executors.newFixedThreadPool(threads);
         ArrayList<FactoryBuilder> factoryBuilders = new ArrayList<>();
         for(int i = 0; i < threads; i ++){
@@ -147,8 +147,11 @@ public class Controller {
         }
         executor.shutdown();
         try{
-            while(!executor.awaitTermination(1, TimeUnit.SECONDS))
-                System.out.println("Threads still processing");
+            int x = 0;
+            while(!executor.awaitTermination(1, TimeUnit.SECONDS)) {
+                x++;
+                System.out.println("Threads still processing " + x);
+            }
         }
         catch(InterruptedException ie){
             System.out.println("Threads interrupted for some reason.");
