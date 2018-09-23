@@ -13,7 +13,7 @@ import java.util.concurrent.TimeoutException;
 
 public class FactoryBuilder implements Runnable{
     public Factory bestFactory;
-    private Exchanger<Factory> exchanger = new Exchanger<>();
+    private static Exchanger<Factory> exchanger = new Exchanger<>();
     private ArrayList<Factory> factories;
     private final int SIZE = 32;
     private final int MAX_GENERATIONS = 128;
@@ -47,7 +47,7 @@ public class FactoryBuilder implements Runnable{
                 f.copyLayout(factories.get(0).getLayout());
                 f = exchanger.exchange(f,10, TimeUnit.SECONDS);
                 factories.add(f);
-                System.out.println("Exchange Occured");
+                System.out.println("Exchange Occurred");
             } catch (InterruptedException e) {
                 System.out.println("Exchange Interrupted.");
                 e.printStackTrace();
@@ -72,7 +72,7 @@ public class FactoryBuilder implements Runnable{
         factories.sort(Collections.reverseOrder());
         factories.subList(SIZE,factories.size()).clear();
         //factories.forEach(f->System.out.println(f.getScore()));
-        System.out.println(factories.get(0).getScore());
+        //System.out.println(factories.get(0).getScore());
         mutate();
     }
 
