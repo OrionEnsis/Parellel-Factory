@@ -1,5 +1,6 @@
 package GeneticFactory.Factory;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -220,7 +221,7 @@ public class Factory implements Comparable<Factory>{
     }
 
     @Override
-    public int compareTo(Factory o){
+    public int compareTo(@Nonnull Factory o){
         return Double.compare(getScore(),o.getScore());
     }
 
