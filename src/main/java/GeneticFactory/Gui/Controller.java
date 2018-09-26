@@ -5,7 +5,6 @@ import GeneticFactory.Factory.FactoryBuilder;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
-import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -46,14 +45,13 @@ public class Controller {
     private int width;
     private HashMap<Tiles,Integer> machines;
     private ArrayList<Factory> factories;
-    private final int MINIMUM_MACHINES = 32;
     private double currentHighScore = Double.MIN_VALUE;
     public static Controller instance;
-    int exchanges;
-    int generations;
+    private int exchanges;
+    private int generations;
 
     @FXML
-    public void onBuildFactory(ActionEvent event){
+    public void onBuildFactory(){
         instance = this;
         boolean success = true;
         currentHighScore = 0;
@@ -65,6 +63,7 @@ public class Controller {
             length = Integer.parseInt(lengthField.getText());
             try{
                 width = Integer.parseInt(widthField.getText());
+                int MINIMUM_MACHINES = 32;
                 try{
                     machines = new HashMap<>();
                     try{
@@ -142,8 +141,6 @@ public class Controller {
         if (success){
             Thread thread = new Thread(this::createFactory);
             thread.start();
-            //createFactory();
-
         }
     }
 
@@ -186,47 +183,8 @@ public class Controller {
 
         System.out.println("Done!");
         buildButton.setDisable(false);
-        //makeImage(factories.get(0));
     }
-/*
-    void makeImage(Factory f){
-        final int SCALE = 10;
-        int imageHeight = length * SCALE;
-        int imageWidth = width * SCALE;
-        WritableImage image = new WritableImage(imageWidth,imageHeight);
-        PixelWriter pixelWriter = image.getPixelWriter();
-        for(int i = 0; i < image.getWidth(); i++){
-            for(int j = 0; j < image.getHeight(); j++){
-                Tiles t = f.getMachine(i/SCALE,j/SCALE).getName();
-                Color c = determineColor(t);
-                pixelWriter.setColor(i,j,c);
-            }
-        }
-        factoryLayout.setImage(image);
-    }
-    private Color determineColor(Tiles t){
-        Color c = Color.ALICEBLUE;
-        switch(t){
-            case EMPTY:
-                c = Color.WHITE;
-                break;
-            case E:
-                c = Color.RED;
-                break;
-            case D:
-                c = Color.BLUE;
-                break;
-            case C:
-                c = Color.GREEN;
-                break;
-            case B:
-                c = Color.YELLOW;
-                break;
-            case A:
-                c = Color.ORANGE;
-        }
-        return c;
-    }*/
+
     private void error(TextField focus, String message){
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setHeaderText("Error");

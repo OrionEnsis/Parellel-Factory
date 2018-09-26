@@ -12,27 +12,24 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class FactoryBuilder implements Runnable{
-    public Factory bestFactory;
     private static Exchanger<Factory> exchanger = new Exchanger<>();
     private ArrayList<Factory> factories;
     private final int SIZE = 32;
     private final int EXCHANGES;
     private final int MAX_GENERATIONS;
-    private final double PERCENT = .25;
-    private int x;
-    private int y;
-    HashMap<Tiles,Integer> rules;
+    private int length;
+    private int width;
+    private HashMap<Tiles,Integer> rules;
 
-    @SuppressWarnings("SuspiciousNameCombination")
-    public FactoryBuilder(int x, int y, HashMap<Tiles,Integer> rules, int exchanges,int generations){
-        this.x = x;
-        this.y = y;
+    public FactoryBuilder(int length, int width, HashMap<Tiles,Integer> rules, int exchanges, int generations){
+        this.length = length;
+        this.width = width;
         this.rules = rules;
         factories = new ArrayList<>();
         EXCHANGES = exchanges;
         MAX_GENERATIONS = generations;
         for (int i = 0; i < SIZE; i ++) {
-            Factory f = new Factory(x,y,rules);
+            Factory f = new Factory(length,width,rules);
             f.generateNewLayout();
             f.evaluateLayout();
             factories.add(f);
@@ -46,7 +43,7 @@ public class FactoryBuilder implements Runnable{
             }
             try {
                 factories.sort(Collections.reverseOrder());
-                Factory f = new Factory(x,y,rules);
+                Factory f = new Factory(this.length,this.width,rules);
                 f.copyLayout(factories.get(0).getLayout());
                 f = exchanger.exchange(f,10, TimeUnit.SECONDS);
                 factories.add(f);
@@ -77,16 +74,16 @@ public class FactoryBuilder implements Runnable{
         mutate();
     }
 
-    void mutate(){
+    private void mutate(){
         for(int i = 0; i < SIZE; i ++){
-            factories.get(i).mutate(PERCENT);
+            factories.get(i).mutate();
         }
 
     }
     private void makeImage(Factory f){
         final int SCALE = 50;
-        int imageHeight = x * SCALE;
-        int imageWidth = y * SCALE;
+        int imageHeight = length * SCALE;
+        int imageWidth = width * SCALE;
         WritableImage image = new WritableImage(imageWidth,imageHeight);
         PixelWriter pixelWriter = image.getPixelWriter();
         for(int i = 0; i < image.getWidth(); i++){

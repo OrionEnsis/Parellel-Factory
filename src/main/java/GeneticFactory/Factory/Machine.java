@@ -1,17 +1,17 @@
 package GeneticFactory.Factory;
 
+import javax.annotation.Nonnull;
+
 public class Machine implements Comparable<Machine> {
 
-
     Tiles name;
-    int x,y;
+    int x, y;
     private int preProduct;
     private int maxFlow;
     private int product;
-    int score;
     private Tiles inputMachine;
     private Tiles outputMachine;
-    public Machine( int x, int y, Tiles name){
+    public Machine(int x, int y, Tiles name){
         this.name = name;
         this.x = x;
         this.y = y;
@@ -20,6 +20,7 @@ public class Machine implements Comparable<Machine> {
         determineMaxFlow();
     }
 
+    @SuppressWarnings("CopyConstructorMissesField")
     public Machine(Machine m){
         this(m.x,m.y,m.getName());
     }
@@ -74,7 +75,7 @@ public class Machine implements Comparable<Machine> {
                 break;
         }
     }
-    void getPreproductFromInputMachine(Machine m){
+    void getPreProductFromInputMachine(Machine m){
         if(distance(m) == 0)
             return;
         if (m.getName().equals(inputMachine)){
@@ -91,10 +92,10 @@ public class Machine implements Comparable<Machine> {
             product = maxFlow;
     }
 
-    public int distance(Machine m){
-        return Math.abs(x-m.x + y - m.y);
+    private int distance(Machine m){
+        return Math.abs(x -m.x + y - m.y);
     }
-    public int getProduct(int demand){
+    int getProduct(int demand){
         if(product > demand){
             product-= demand;
             return demand;
@@ -129,7 +130,7 @@ public class Machine implements Comparable<Machine> {
     }
 
     @Override
-    public int compareTo(Machine o) {
+    public int compareTo(@Nonnull Machine o) {
         return name.compareTo(o.getName());
     }
 
@@ -141,15 +142,6 @@ public class Machine implements Comparable<Machine> {
         this.name = name;
         getInputMachine();
         getOutputMachine();
-    }
-
-    static int compareTiles(Tiles a, Tiles b){
-        int aValue = getProductionRate(a);
-        int bValue = getProductionRate(b);
-        if (a.equals(b) || a.equals(Tiles.EMPTY) || b.equals(Tiles.EMPTY)){
-            return 0;
-        }
-        return (aValue + bValue) % 6;
     }
 
     int scoreMachine(Machine other) {
@@ -164,22 +156,4 @@ public class Machine implements Comparable<Machine> {
         return 0;
     }
 
-
-    private static int getProductionRate(Tiles a){
-        switch(a){
-            case A:
-                return 1;
-            case B:
-                return 2;
-            case C:
-                return 3;
-            case D:
-                return 4;
-            case E:
-                return 5;
-            case EMPTY:
-                return 0;
-        }
-        return 0;
-    }
 }

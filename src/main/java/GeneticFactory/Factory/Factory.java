@@ -71,7 +71,7 @@ public class Factory implements Comparable<Factory>{
         }
 
         //count each machine type.
-        child.enforceRules(this,otherFactory);
+        child.enforceRules();
 
         //evaluate performance
         evaluateLayout();
@@ -79,7 +79,7 @@ public class Factory implements Comparable<Factory>{
         return child;
     }
 
-    private void enforceRules(Factory factoryA, Factory factoryB){
+    private void enforceRules(){
         Random random = new Random();
         currentMachines.forEach((k,v)-> {
                 //remove too random too high one.
@@ -119,38 +119,38 @@ public class Factory implements Comparable<Factory>{
             }
         }
         currentMachines.get(Tiles.A).forEach(Machine::makeProduct);
-        currentMachines.get(Tiles.B).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.B).forEach(m->getNeighbors(m.x,m.y,1).forEach(m::getPreProductFromInputMachine));
         currentMachines.get(Tiles.B).forEach(Machine::makeProduct);
 
         currentMachines.get(Tiles.A).forEach(Machine::makeProduct);
-        currentMachines.get(Tiles.B).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.B).forEach(m->getNeighbors(m.x,m.y,1).forEach(m::getPreProductFromInputMachine));
         currentMachines.get(Tiles.B).forEach(Machine::makeProduct);
-        currentMachines.get(Tiles.C).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.C).forEach(m->getNeighbors(m.x,m.y,1).forEach(m::getPreProductFromInputMachine));
         currentMachines.get(Tiles.C).forEach(Machine::makeProduct);
 
         currentMachines.get(Tiles.A).forEach(Machine::makeProduct);
-        currentMachines.get(Tiles.B).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.B).forEach(m->getNeighbors(m.x,m.y,1).forEach(m::getPreProductFromInputMachine));
         currentMachines.get(Tiles.B).forEach(Machine::makeProduct);
-        currentMachines.get(Tiles.C).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.C).forEach(m->getNeighbors(m.x,m.y,1).forEach(m::getPreProductFromInputMachine));
         currentMachines.get(Tiles.C).forEach(Machine::makeProduct);
-        currentMachines.get(Tiles.D).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.D).forEach(m->getNeighbors(m.x,m.y,1).forEach(m::getPreProductFromInputMachine));
         currentMachines.get(Tiles.D).forEach(Machine::makeProduct);
 
         currentMachines.get(Tiles.A).forEach(Machine::makeProduct);
-        currentMachines.get(Tiles.B).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.B).forEach(m->getNeighbors(m.x,m.y,1).forEach(m::getPreProductFromInputMachine));
         currentMachines.get(Tiles.B).forEach(Machine::makeProduct);
-        currentMachines.get(Tiles.C).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.C).forEach(m->getNeighbors(m.x,m.y,1).forEach(m::getPreProductFromInputMachine));
         currentMachines.get(Tiles.C).forEach(Machine::makeProduct);
-        currentMachines.get(Tiles.D).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.D).forEach(m->getNeighbors(m.x,m.y,1).forEach(m::getPreProductFromInputMachine));
         currentMachines.get(Tiles.D).forEach(Machine::makeProduct);
-        currentMachines.get(Tiles.E).forEach(m->getNeighbors(m.x,m.y,1).forEach(n->m.getPreproductFromInputMachine(n)));
+        currentMachines.get(Tiles.E).forEach(m->getNeighbors(m.x,m.y,1).forEach(m::getPreProductFromInputMachine));
         currentMachines.get(Tiles.E).forEach(Machine::makeProduct);
         currentMachines.get(Tiles.E).forEach(m->score +=m.getProduct(10000));
-        currentMachines.forEach((k,v)->v.forEach(m->m.resetMachine()));
+        currentMachines.forEach((k,v)->v.forEach(Machine::resetMachine));
     }
 
-    public void mutate(double percent){
-        int tilesToSwap = (int)((TOTAL_TILES * percent));
+    void mutate(){
+        int tilesToSwap = (int)((TOTAL_TILES * 0.25));
         Factory m = new Factory(layout.length,layout[0].length,rules);
         m.copyLayout(this.layout);
         Random random = new Random();
@@ -161,7 +161,7 @@ public class Factory implements Comparable<Factory>{
             int y2 = random.nextInt(layout[0].length);
             m.setMachine(x1,y1,layout[x2][y2]);
         }
-        m.enforceRules(this,this);
+        m.enforceRules();
         m.evaluateLayout();
         if(this.getScore() <m.getScore()){
             this.copyLayout(m.getLayout());
@@ -169,17 +169,6 @@ public class Factory implements Comparable<Factory>{
     }
 
     private double scoreInt(Machine a, Machine b){
-        /*double negativeResultModifier = .0001d;
-        double positiveResultModifier = 1d;
-
-        if(compareMachines(a,b)<0){
-            return negativeResultModifier * compareMachines(a,b);
-        }
-        if(!(a.x-b.x == 0 && a.y - b.y == 0))
-            return (compareMachines(a,b) * positiveResultModifier)/Math.sqrt(((Math.pow(a.x-b.x,2)+Math.pow(a.y-b.y,2))));
-        else{
-            return 0;
-        }*/
         return a.scoreMachine(b);
     }
     private HashSet<Machine> getNeighbors(int x, int y, int recurse){
@@ -190,34 +179,15 @@ public class Factory implements Comparable<Factory>{
         machines.add(layout[x][y]);
         if (recurse > 0) {
             for(Machine m: machines) {
-                machines.addAll(getNeighbors(m.x, m.y-1, recurse - 1));
-                machines.addAll(getNeighbors(m.x-1, m.y, recurse - 1));
-                machines.addAll(getNeighbors(m.x+1, m.y, recurse - 1));
-                machines.addAll(getNeighbors(m.x, m.y+1, recurse - 1));
+                machines.addAll(getNeighbors(m.x, m.y -1, recurse - 1));
+                machines.addAll(getNeighbors(m.x -1, m.y, recurse - 1));
+                machines.addAll(getNeighbors(m.x +1, m.y, recurse - 1));
+                machines.addAll(getNeighbors(m.x, m.y +1, recurse - 1));
             }
         }
         return machines;
     }
 
-    private static int compareMachines(Machine a, Machine b){
-        if(a.getName().equals(b.getName()))
-            return -1;
-        return Machine.compareTiles(a.getName(),b.getName());
-    }
-
-    private int getMachineNum(Machine t){
-        int sum = 0;
-        for(Machine[] q: layout){
-            for(Machine b: q){
-                if(b.equals(t)){
-                    sum++;
-                }
-            }
-        }
-        return sum;
-    }
-
-    //TODO needs work.
     void copyLayout(Machine[][] layout){
         for(Tiles t: Tiles.values()){
             currentMachines.put(t,new ArrayList<>());
