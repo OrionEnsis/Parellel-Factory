@@ -150,10 +150,9 @@ public class Factory implements Comparable<Factory>{
     }
 
     public void mutate(double percent){
-        int tilesToSwap = (int)((TOTAL_TILES * percent)/2);
+        int tilesToSwap = (int)((TOTAL_TILES * percent));
         Factory m = new Factory(layout.length,layout[0].length,rules);
         m.copyLayout(this.layout);
-        Machine[][] tempLayout = m.getLayout();
         Random random = new Random();
         for (int i = 0; i < tilesToSwap; i++) {
             int x1 = random.nextInt(layout.length);

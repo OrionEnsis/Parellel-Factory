@@ -8,6 +8,7 @@ public class Machine implements Comparable<Machine> {
     private int preProduct;
     private int maxFlow;
     private int product;
+    int score;
     private Tiles inputMachine;
     private Tiles outputMachine;
     public Machine( int x, int y, Tiles name){
@@ -156,7 +157,7 @@ public class Machine implements Comparable<Machine> {
         if (distance != 0){
             if (other.getName().equals(inputMachine) || other.getName().equals(outputMachine)) {
                 return 3 / distance;
-            } else {
+            } else if (!getName().equals(Tiles.EMPTY)){
                 return -1/distance;
             }
         }

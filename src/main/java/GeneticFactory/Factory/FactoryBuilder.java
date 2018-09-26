@@ -16,18 +16,21 @@ public class FactoryBuilder implements Runnable{
     private static Exchanger<Factory> exchanger = new Exchanger<>();
     private ArrayList<Factory> factories;
     private final int SIZE = 32;
-    private final int MAX_GENERATIONS = 128;
-    private final double PERCENT = .1;
+    private final int EXCHANGES;
+    private final int MAX_GENERATIONS;
+    private final double PERCENT = .25;
     private int x;
     private int y;
     HashMap<Tiles,Integer> rules;
 
     @SuppressWarnings("SuspiciousNameCombination")
-    public FactoryBuilder(int x, int y, HashMap<Tiles,Integer> rules){
+    public FactoryBuilder(int x, int y, HashMap<Tiles,Integer> rules, int exchanges,int generations){
         this.x = x;
         this.y = y;
         this.rules = rules;
         factories = new ArrayList<>();
+        EXCHANGES = exchanges;
+        MAX_GENERATIONS = generations;
         for (int i = 0; i < SIZE; i ++) {
             Factory f = new Factory(x,y,rules);
             f.generateNewLayout();
@@ -37,7 +40,7 @@ public class FactoryBuilder implements Runnable{
     }
     @Override
     public void run() {
-        for(int x = 0; x < 32; x++) {
+        for(int x = 0; x < EXCHANGES; x++) {
             for (int i = 0; i < MAX_GENERATIONS; i++) {
                 newGeneration();
             }
@@ -71,8 +74,6 @@ public class FactoryBuilder implements Runnable{
         }
         factories.sort(Collections.reverseOrder());
         factories.subList(SIZE,factories.size()).clear();
-        //factories.forEach(f->System.out.println(f.getScore()));
-        //System.out.println(factories.get(0).getScore());
         mutate();
     }
 
@@ -83,7 +84,7 @@ public class FactoryBuilder implements Runnable{
 
     }
     private void makeImage(Factory f){
-        final int SCALE = 10;
+        final int SCALE = 50;
         int imageHeight = x * SCALE;
         int imageWidth = y * SCALE;
         WritableImage image = new WritableImage(imageWidth,imageHeight);
@@ -95,7 +96,6 @@ public class FactoryBuilder implements Runnable{
                 pixelWriter.setColor(i,j,c);
             }
         }
-        //Controller.instance.setScoreListed(f.getScore());
         Controller.instance.setImage(image,f.getScore());
 
     }

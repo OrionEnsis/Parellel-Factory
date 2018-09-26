@@ -6,6 +6,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.event.ActionEvent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import GeneticFactory.Factory.Tiles;
@@ -31,9 +32,15 @@ public class Controller {
     @FXML
     private TextField eField;
     @FXML
+    private TextField generationField;
+    @FXML
+    private TextField exchangeField;
+    @FXML
     private ImageView factoryLayout;
     @FXML
     private Label scoreListed;
+    @FXML
+    private Button buildButton;
 
     private int length;
     private int width;
@@ -42,6 +49,8 @@ public class Controller {
     private final int MINIMUM_MACHINES = 32;
     private double currentHighScore = Double.MIN_VALUE;
     public static Controller instance;
+    int exchanges;
+    int generations;
 
     @FXML
     public void onBuildFactory(ActionEvent event){
@@ -68,6 +77,21 @@ public class Controller {
                                     machines.put(Tiles.D,Integer.parseInt(dField.getText()));
                                     try{
                                         machines.put(Tiles.E,Integer.parseInt(eField.getText()));
+                                        try{
+                                            exchanges = Integer.parseInt(exchangeField.getText());
+                                            try{
+                                                generations = Integer.parseInt(generationField.getText());
+                                            }
+                                            catch(NumberFormatException nfe){
+                                                error(generationField,"The number of generations needs to be an integer.");
+                                                success = false;
+                                            }
+                                        }
+                                        catch(NumberFormatException nfe){
+                                            error(exchangeField,"The number of exchanges needs to be an integer.");
+                                            success = false;
+                                        }
+
                                     }
                                     catch(NumberFormatException nfe){
                                         error(eField,"The number of E machines needs to be an integer.");
@@ -128,8 +152,6 @@ public class Controller {
             if (score >= currentHighScore) {
                 currentHighScore = score;
                 factoryLayout.setImage(i);
-                //factoryLayout.setFitHeight(250);
-                //factoryLayout.setFitWidth(250);
                 scoreListed.setText("" + currentHighScore);
             }
         });
@@ -138,11 +160,12 @@ public class Controller {
 
     @SuppressWarnings("SuspiciousNameCombination")
     private void createFactory()  {
-        int threads = 4;
+        int threads = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(threads);
         ArrayList<FactoryBuilder> factoryBuilders = new ArrayList<>();
+        buildButton.setDisable(true);
         for(int i = 0; i < threads; i ++){
-            factoryBuilders.add(new FactoryBuilder(length,width,machines));
+            factoryBuilders.add(new FactoryBuilder(length,width,machines,exchanges,generations));
             executor.execute(factoryBuilders.get(i));
         }
         executor.shutdown();
@@ -162,6 +185,7 @@ public class Controller {
         factories.sort((f1,f2)-> -f1.compareTo(f2));
 
         System.out.println("Done!");
+        buildButton.setDisable(false);
         //makeImage(factories.get(0));
     }
 /*
