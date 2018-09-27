@@ -11,23 +11,38 @@ import java.util.concurrent.Exchanger;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * this class builds a series of factories and then employs a genetic algorithm in order to produce an ideal factory.
+ * it additionally occasionally exchanges factories with other FactoryBuilder objects.
+ */
 public class FactoryBuilder implements Runnable{
     private static Exchanger<Factory> exchanger = new Exchanger<>();
     private ArrayList<Factory> factories;
-    private final int SIZE = 32;
+    private final int SIZE = 64;
     private final int EXCHANGES;
     private final int MAX_GENERATIONS;
     private int length;
     private int width;
     private HashMap<Tiles,Integer> rules;
 
-    public FactoryBuilder(int length, int width, HashMap<Tiles,Integer> rules, int exchanges, int generations){
+    /**
+     * builds a new FactoryBuilder
+     * @param length the length of the Factories.
+     * @param width the width of the Factories
+     * @param rules the number of each type of Machine that is permitted for an acceptable machine.
+     * @param exchanges the number of times the FactoryBuilder will attempt to exchange a Factory during operation.
+     * @param generations the number of generations that will be iterated on in between exchanges.
+     */
+    public FactoryBuilder(final int length, final int width, final HashMap<Tiles,Integer> rules,
+                          final int exchanges, final int generations){
         this.length = length;
         this.width = width;
         this.rules = rules;
         factories = new ArrayList<>();
         EXCHANGES = exchanges;
         MAX_GENERATIONS = generations;
+
+        //create a new set of factories to genetically build.
         for (int i = 0; i < SIZE; i ++) {
             Factory f = new Factory(length,width,rules);
             f.generateNewLayout();
@@ -35,16 +50,24 @@ public class FactoryBuilder implements Runnable{
             factories.add(f);
         }
     }
+
+    /**
+     * this method runs the genetic algorithm for the factory.
+     */
     @Override
     public void run() {
         for(int x = 0; x < EXCHANGES; x++) {
             for (int i = 0; i < MAX_GENERATIONS; i++) {
                 newGeneration();
             }
+            //try to have an exchange take place.
             try {
+                //prep for exchange
                 factories.sort(Collections.reverseOrder());
                 Factory f = new Factory(this.length,this.width,rules);
                 f.copyLayout(factories.get(0).getLayout());
+
+                //exchange
                 f = exchanger.exchange(f,10, TimeUnit.SECONDS);
                 factories.add(f);
                 System.out.println("Exchange Occurred");
@@ -54,38 +77,56 @@ public class FactoryBuilder implements Runnable{
             } catch (TimeoutException e) {
                 System.out.println("Exchanger Timeout");
             }
-            System.out.println("Cycle " + x);
+            System.out.println("Cycle " + (x + 1));
         }
         System.out.println("Thread done.");
     }
 
+    /**
+     * this method handles the creation of new factories for a generation iteration of the genetic iteration.
+     */
     private void newGeneration(){
         factories.sort(Collections.reverseOrder());
         makeImage(factories.get(0));
 
+        //breed the children.
         for(int i = 0; i < SIZE; i ++){
             factories.add(factories.get(i).crossBreed(factories.get(i+1)));
             if(i == 0){
                 factories.add(factories.get(0).crossBreed(factories.get(2)));
             }
         }
+        //mutate.
+        mutate();
+
+        //determine the darwin survivors
         factories.sort(Collections.reverseOrder());
         factories.subList(SIZE,factories.size()).clear();
-        mutate();
+        //TODO consider switching order for mutation before culling.
+
     }
 
+    /**
+     * this thread handles mutation for each Factory in the FactoryBuilder.
+     */
     private void mutate(){
         for(int i = 0; i < SIZE; i ++){
             factories.get(i).mutate();
         }
-
     }
-    private void makeImage(Factory f){
+
+    /**
+     * this method creates an image based of off a factory and attempts to send it to the GUI.
+     * @param f the factory the image shall be based in.
+     */
+    private void makeImage(final Factory f){
         final int SCALE = 50;
         int imageHeight = length * SCALE;
         int imageWidth = width * SCALE;
         WritableImage image = new WritableImage(imageWidth,imageHeight);
         PixelWriter pixelWriter = image.getPixelWriter();
+
+        //create the image.
         for(int i = 0; i < image.getWidth(); i++){
             for(int j = 0; j < image.getHeight(); j++){
                 Tiles t = f.getMachine(i/SCALE,j/SCALE).getName();
@@ -93,10 +134,14 @@ public class FactoryBuilder implements Runnable{
                 pixelWriter.setColor(i,j,c);
             }
         }
-        Controller.instance.setImage(image,f.getScore());
-
+        Controller.getInstance().setImage(image,f.getScore());
     }
 
+    /**
+     * this method determines the color to be printed based on the Tile type given.
+     * @param t The tile that determines the color.
+     * @return the color of the tile.
+     */
     private Color determineColor(Tiles t){
         Color c = Color.ALICEBLUE;
         switch(t){
@@ -104,23 +149,20 @@ public class FactoryBuilder implements Runnable{
                 c = Color.WHITE;
                 break;
             case E:
-                c = Color.RED;
-                break;
-            case D:
                 c = Color.BLUE;
                 break;
-            case C:
+            case D:
                 c = Color.GREEN;
                 break;
-            case B:
+            case C:
                 c = Color.YELLOW;
                 break;
-            case A:
+            case B:
                 c = Color.ORANGE;
+                break;
+            case A:
+                c = Color.RED;
         }
         return c;
-    }
-    public Factory getBestFactory(){
-        return factories.get(0);
     }
 }

@@ -5,7 +5,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * this class is a representation of a potential factory layout.  It has the ability to produce a "valid" factory based
+ * on the rules sent by a FactoryBuilder or equivalent.  It is also able to scored by the metrics of each machine.
+ */
 public class Factory implements Comparable<Factory>{
     private double score;
     private Machine[][] layout;
@@ -13,14 +18,22 @@ public class Factory implements Comparable<Factory>{
     private HashMap<Tiles,ArrayList<Machine>> currentMachines = new HashMap<>();
     private final int TOTAL_TILES;
 
+    /**
+     * constructs a basic factory
+     * @param length length of the factory layout
+     * @param width width of the factory layout
+     * @param rules a HashMap that states the number of machines of each Tile type that are allowed to exist.
+     */
     public Factory (int length, int width, HashMap<Tiles,Integer> rules) {
         this.rules = new HashMap<>(rules);
         layout = new Machine[length][width];
 
+        //populate the HashMap
         for(Tiles t: Tiles.values()){
             currentMachines.put(t,new ArrayList<>());
         }
 
+        //Add all members to the HashMap's ArrayLists
         for (int i = 0; i < layout.length; i ++) {
             for (int j = 0; j < layout[0].length; j++) {
                 layout[i][j] = new Machine(i, j, Tiles.EMPTY);
@@ -30,8 +43,13 @@ public class Factory implements Comparable<Factory>{
         TOTAL_TILES = length *width;
     }
 
+    /**
+     * generates a new random layout.
+     */
     void generateNewLayout(){
-        Random r = new Random();
+        ThreadLocalRandom r = ThreadLocalRandom.current();
+
+        //use the rules and currentMachines to reduce calculations
         for(HashMap.Entry<Tiles,Integer> entry: rules.entrySet()){
             for(int i = 0; i < entry.getValue(); i++){
                 int x = r.nextInt(currentMachines.get(Tiles.EMPTY).size());
@@ -43,8 +61,13 @@ public class Factory implements Comparable<Factory>{
         }
     }
 
+    /**
+     * this creates a new factory by breeding it with another factory
+     * @param otherFactory the other "parent" for breeding
+     * @return the new child factory.
+     */
     Factory crossBreed(Factory otherFactory){
-        Random random = new Random();
+        ThreadLocalRandom random = ThreadLocalRandom.current();
         Factory child = new Factory(layout.length,layout[0].length, rules);
         ArrayList<Machine> nonMatchingMachines = new ArrayList<>();
 
@@ -80,8 +103,13 @@ public class Factory implements Comparable<Factory>{
         return child;
     }
 
+    /**
+     * this method enforces the rules of the genetic algorithm to prevent 'rampant' changes
+     */
     private void enforceRules(){
-        Random random = new Random();
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+
+        //remove extra machines
         currentMachines.forEach((k,v)-> {
                 //remove too random too high one.
                 if (!k.equals(Tiles.EMPTY)) {
@@ -93,11 +121,12 @@ public class Factory implements Comparable<Factory>{
                     }
                 }
             });
+
+        //fill in for missing machines
         currentMachines.forEach((k,v)->{
             if(!k.equals(Tiles.EMPTY)){
                 //add to random low member
                 while (v.size() < rules.get(k)) {
-                    //TODO should choose from parent for determining new element placing.
                     int x = random.nextInt(currentMachines.get(Tiles.EMPTY).size());
                     Machine m = currentMachines.get(Tiles.EMPTY).get(x);
                     m.setName(k);
@@ -108,9 +137,15 @@ public class Factory implements Comparable<Factory>{
         });
     }
 
-    public void evaluateLayout(){
+    /**
+     * this method determines the score of the factory by comparing each Machine with its neighbors, and by simulating
+     * the factory running and counting the amount of goods produced.
+     */
+
+    void evaluateLayout(){
         score = 0;
 
+        //count the adjacency score
         for(int i = 0; i < layout.length; i++){
             for(int j = 0; j < layout[0].length; j++){
                 HashSet<Machine> machines = getNeighbors(i,j,3);
@@ -119,6 +154,7 @@ public class Factory implements Comparable<Factory>{
                 }
             }
         }
+        //the simulation must be run a separate time for each iteration to determine the amount produced by the end machines
         currentMachines.get(Tiles.A).forEach(Machine::makeProduct);
         currentMachines.get(Tiles.B).forEach(m->getNeighbors(m.x,m.y,1).forEach(m::getPreProductFromInputMachine));
         currentMachines.get(Tiles.B).forEach(Machine::makeProduct);
@@ -146,15 +182,21 @@ public class Factory implements Comparable<Factory>{
         currentMachines.get(Tiles.D).forEach(Machine::makeProduct);
         currentMachines.get(Tiles.E).forEach(m->getNeighbors(m.x,m.y,1).forEach(m::getPreProductFromInputMachine));
         currentMachines.get(Tiles.E).forEach(Machine::makeProduct);
+
+        //get the score and reset for next tick
         currentMachines.get(Tiles.E).forEach(m->score +=m.getProduct(10000));
         currentMachines.forEach((k,v)->v.forEach(Machine::resetMachine));
     }
 
+    /**
+     * swap tiles to potentially create a better species
+     */
     void mutate(){
-        int tilesToSwap = (int)((TOTAL_TILES * 0.25));
+        int tilesToSwap = (int)((TOTAL_TILES * 0.15));
         Factory m = new Factory(layout.length,layout[0].length,rules);
         m.copyLayout(this.layout);
-        Random random = new Random();
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        //swap the tiles around
         for (int i = 0; i < tilesToSwap; i++) {
             int x1 = random.nextInt(layout.length);
             int y1 = random.nextInt(layout[0].length);
@@ -162,16 +204,34 @@ public class Factory implements Comparable<Factory>{
             int y2 = random.nextInt(layout[0].length);
             m.setMachine(x1,y1,layout[x2][y2]);
         }
+        //we still need to follow the rules
         m.enforceRules();
+
+        //if we have a better score replace.
         m.evaluateLayout();
         if(this.getScore() <m.getScore()){
             this.copyLayout(m.getLayout());
+            this.evaluateLayout();
         }
     }
 
+    /**
+     * scores a pair of machines against each other
+     * @param a the first Machine
+     * @param b The second Machine
+     * @return the score achieved.
+     */
     private double scoreInt(Machine a, Machine b){
         return a.scoreMachine(b);
     }
+
+    /**
+     * allows neighbors to be retrieved recursively.  It also returns the base member
+     * @param x starting x
+     * @param y starting y
+     * @param recurse distance neighbors are.
+     * @return a HashSet of the neighbors found, including the base machine.
+     */
     private HashSet<Machine> getNeighbors(int x, int y, int recurse){
         if( x < 0 || x >= layout.length || y < 0 || y >= layout[0].length){
             return new HashSet<>();
@@ -189,10 +249,17 @@ public class Factory implements Comparable<Factory>{
         return machines;
     }
 
+    /**
+     * copies a machine layout to this Factory
+     * @param layout the layout to copy
+     */
     void copyLayout(Machine[][] layout){
+        //clean currentMachines
         for(Tiles t: Tiles.values()){
             currentMachines.put(t,new ArrayList<>());
         }
+
+        //add each machine onto the layout
         this.layout = new Machine[layout.length][];
         for(int i = 0; i < layout.length; i++){
             this.layout[i] = new Machine[layout[0].length];
@@ -203,6 +270,13 @@ public class Factory implements Comparable<Factory>{
 
         }
     }
+
+    /**
+     * copy a machine onto the other
+     * @param x x-coordinate
+     * @param y y-coordinate
+     * @param t the machine to copy
+     */
     private void setMachine(int x, int y, Machine t){
         Machine m = layout[x][y];
         currentMachines.forEach((k,v)->v.remove(m));
@@ -210,21 +284,44 @@ public class Factory implements Comparable<Factory>{
         layout[x][y].setName(t.getName());
     }
 
+    /**
+     * return the Machine at the given coordinates
+     * @param x the x coordinate of the Machine
+     * @param y the y coordinate of the Machine
+     * @return the Machine at the coordinates.
+     */
     Machine getMachine(int x, int y){ return layout[x][y];    }
 
+    /**
+     * get the machine layout
+     * @return the layout returned
+     */
     Machine[][] getLayout(){
         return layout;
     }
 
+    /**
+     * return the score
+     * @return the score of This Machine
+     */
     double getScore(){
         return score;
     }
 
+    /**
+     * comparison with another factory
+     * @param o the other Factory
+     * @return the comparison
+     */
     @Override
     public int compareTo(@Nonnull Factory o){
         return Double.compare(getScore(),o.getScore());
     }
 
+    /**
+     * returns the string of tiles.
+     * @return get the string of the object
+     */
     @SuppressWarnings({"ForLoopReplaceableByForEach", "StringConcatenationInLoop"})
     @Override
     public String toString() {
