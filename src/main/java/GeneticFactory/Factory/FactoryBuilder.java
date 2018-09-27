@@ -102,7 +102,6 @@ public class FactoryBuilder implements Runnable{
         //determine the darwin survivors
         factories.sort(Collections.reverseOrder());
         factories.subList(SIZE,factories.size()).clear();
-        //TODO consider switching order for mutation before culling.
 
     }
 
