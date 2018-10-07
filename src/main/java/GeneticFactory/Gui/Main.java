@@ -20,6 +20,7 @@ public class Main extends Application {
         primaryStage.setScene(new Scene(root, 1920, 1080));
         Platform.setImplicitExit(false);
         primaryStage.setMaximized(true);
+        primaryStage.setResizable(true);
         primaryStage.setOnCloseRequest(we -> System.exit(0));
         primaryStage.show();
     }

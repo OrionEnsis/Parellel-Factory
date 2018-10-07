@@ -3,14 +3,15 @@ package GeneticFactory.Gui;
 import GeneticFactory.Factory.FactoryBuilder;
 import GeneticFactory.Factory.Tiles;
 import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
+import javax.imageio.ImageIO;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
@@ -42,17 +43,32 @@ public class Controller {
     @FXML
     private ImageView factoryLayout;
     @FXML
+    private ImageView recent1;
+    @FXML
+    private ImageView recent2;
+    @FXML
+    private ImageView recent3;
+    @FXML
     private Label scoreListed;
     @FXML
+    private Label score1;
+    @FXML
+    private Label score2;
+    @FXML
+    private Label score3;
+    @FXML
     private Button buildButton;
+    @FXML
+    private CheckBox continueButton;
 
     private int length;
     private int width;
     private HashMap<Tiles,Integer> machines;
-    private double currentHighScore = Double.MIN_VALUE;
+    private int currentHighScore = Integer.MIN_VALUE;
     private static Controller instance;
     private int exchanges;
     private int generations;
+    private int finishedFactories;
 
     /**
      *
@@ -101,7 +117,9 @@ public class Controller {
             success = false;
         }
         if (success){
-            createFactory();
+            Thread t = new Thread(this::createFactory);
+            t.start();
+
         }
     }
 
@@ -113,7 +131,7 @@ public class Controller {
      *
      *
      */
-    public void setImage(final Image i,final double score){
+    public void setImage(final Image i,final int score){
         Platform.runLater(()->{
             if (score >= currentHighScore) {
                 currentHighScore = score;
@@ -136,35 +154,45 @@ public class Controller {
      * this method creates the ideal factory via a genetic algorithm.
      */
     private void createFactory()  {
-        int threads = Runtime.getRuntime().availableProcessors();
-        ExecutorService executor = Executors.newFixedThreadPool(threads);
-        ArrayList<FactoryBuilder> factoryBuilders = new ArrayList<>();
 
         //disable the button
         buildButton.setDisable(true);
 
-        //create and run new threads
-        for(int i = 0; i < threads; i ++){
-            factoryBuilders.add(new FactoryBuilder(length,width,machines,exchanges,generations));
-        }
-        for(int i = 0; i < threads; i ++){
-            executor.execute(factoryBuilders.get(i));
-        }
-
-        //stop the threads
-        executor.shutdown();
-        try{
-            int x = 0;
-            while(!executor.awaitTermination(1, TimeUnit.SECONDS)) {
-                x++;
-                System.out.println("Threads still processing " + x);
+        do {
+            currentHighScore = Integer.MIN_VALUE;
+            int threads = Runtime.getRuntime().availableProcessors();
+            ExecutorService executor = Executors.newFixedThreadPool(threads);
+            ArrayList<FactoryBuilder> factoryBuilders = new ArrayList<>();
+            //create and run new threads
+            for (int i = 0; i < threads; i++) {
+                factoryBuilders.add(new FactoryBuilder(length, width, machines, exchanges, generations));
             }
-        }
-        catch(InterruptedException ie){
-            System.out.println("Threads interrupted for some reason.");
-        }
+            for (int i = 0; i < threads; i++) {
+                executor.execute(factoryBuilders.get(i));
+            }
 
-        //reset for the next cycle.
+            //stop the threads
+            executor.shutdown();
+            try {
+                executor.awaitTermination(1, TimeUnit.DAYS);
+            } catch (InterruptedException ie) {
+                System.out.println("Threads interrupted for some reason.");
+            }
+            System.out.println("Simulation Complete");
+
+            Platform.runLater(()->{
+                recent3.setImage(recent2.getImage());
+                score3.setText(score2.getText());
+                recent2.setImage(recent1.getImage());
+                score2.setText(score1.getText());
+                recent1.setImage(factoryLayout.getImage());
+                score1.setText(scoreListed.getText());
+            });
+
+            writeImage();
+
+        }while(continueButton.isSelected());
+
         System.out.println("Done!");
         buildButton.setDisable(false);
     }
@@ -203,5 +231,24 @@ public class Controller {
         if(focus != null){
             focus.requestFocus();
         }
+    }
+
+    /**
+     * this method writes the final image to the local directory and saves it.
+     */
+    private void writeImage(){
+        try{
+            Image i = factoryLayout.getImage();
+            //String s = new File(Controller.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getPath();
+            File f = new File(   File.separator + "Finished Factory " + finishedFactories + ".png");
+            System.out.println(f.toPath().toString());
+
+            ImageIO.write(SwingFXUtils.fromFXImage(i,null),"png",f);
+            System.out.println(f.getAbsolutePath());
+        } catch (IOException e) {
+            System.out.println("Image Write Failed");
+            finishedFactories--;
+        }
+        finishedFactories++;
     }
 }

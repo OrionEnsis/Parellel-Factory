@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * on the rules sent by a FactoryBuilder or equivalent.  It is also able to scored by the metrics of each machine.
  */
 public class Factory implements Comparable<Factory>{
-    private double score;
+    private int score;
     private Machine[][] layout;
     private HashMap<Tiles,Integer> rules;
     private HashMap<Tiles,ArrayList<Machine>> currentMachines = new HashMap<>();
@@ -220,7 +220,7 @@ public class Factory implements Comparable<Factory>{
      * @param b The second Machine
      * @return the score achieved.
      */
-    private double scoreInt(Machine a, Machine b){
+    private int scoreInt(Machine a, Machine b){
         return a.scoreMachine(b);
     }
 
@@ -303,7 +303,7 @@ public class Factory implements Comparable<Factory>{
      * return the score
      * @return the score of This Machine
      */
-    double getScore(){
+    int getScore(){
         return score;
     }
 
